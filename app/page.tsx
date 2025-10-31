@@ -77,7 +77,7 @@ export default function LandingPage() {
 
       <footer className="mt-16 text-gray-500 text-sm">
         © {new Date().getFullYear()} Smart Laundry Expert System — Developed by{" "}
-        <span className="font-medium text-indigo-600">Tian</span>
+        <span className="font-medium text-indigo-600">Mahendra</span>
       </footer>
     </div>
   );

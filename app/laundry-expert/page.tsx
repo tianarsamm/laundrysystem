@@ -1,5 +1,7 @@
 "use client";
+
 import { useState } from "react";
+import { supabase } from "../../lib/supabaseClient"; 
 
 export default function LaundryExpertSystem() {
   const [formData, setFormData] = useState({
@@ -16,13 +18,15 @@ export default function LaundryExpertSystem() {
   });
 
   const [result, setResult] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     const {
       fabricType,
@@ -54,130 +58,82 @@ export default function LaundryExpertSystem() {
     }
 
     setResult(recommendation);
+
+    // ✅ Simpan hasil konsultasi ke Supabase
+    const { error } = await supabase.from("consultations").insert([
+      {
+        fabric_type: fabricType,
+        color,
+        dirt_level: dirtLevel,
+        has_oil_stain: hasOilStain,
+        has_ink_stain: hasInkStain,
+        clothes_count: clothesCount,
+        clothing_type: clothingType,
+        sensitive_material: sensitiveMaterial,
+        need_iron: needIron,
+        need_express: needExpress,
+        recommendation,
+      },
+    ]);
+
+    if (error) {
+      console.error("❌ Gagal menyimpan data:", error.message);
+      alert("Gagal menyimpan data ke Supabase!");
+    } else {
+      console.log("✅ Data berhasil disimpan ke Supabase");
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6 text-black">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-500 flex items-center justify-center p-6 text-black">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-2xl">
         <h1 className="text-2xl font-bold text-center mb-6 text-black">
-          🧺 Sistem Pakar Laundry
+          Konsultasi Pakaian Anda
         </h1>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Kondisi 1 */}
-          <div>
-            <label className="block font-medium mb-1">Jenis Kain</label>
-            <select name="fabricType" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="katun">Katun</option>
-              <option value="sutra">Sutra</option>
-              <option value="wol">Wol</option>
-              <option value="denim">Denim</option>
-              <option value="lainnya">Lainnya</option>
-            </select>
-          </div>
-
-          {/* Kondisi 2 */}
-          <div>
-            <label className="block font-medium mb-1">Warna Pakaian</label>
-            <select name="color" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="putih">Putih</option>
-              <option value="warna">Berwarna</option>
-              <option value="gelap">Gelap</option>
-            </select>
-          </div>
-
-          {/* Kondisi 3 */}
-          <div>
-            <label className="block font-medium mb-1">Tingkat Kotor</label>
-            <select name="dirtLevel" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="ringan">Ringan</option>
-              <option value="sedang">Sedang</option>
-              <option value="sangat kotor">Sangat Kotor</option>
-            </select>
-          </div>
-
-          {/* Kondisi 4 */}
-          <div>
-            <label className="block font-medium mb-1">Ada Noda Minyak?</label>
-            <select name="hasOilStain" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="ya">Ya</option>
-              <option value="tidak">Tidak</option>
-            </select>
-          </div>
-
-          {/* Kondisi 5 */}
-          <div>
-            <label className="block font-medium mb-1">Ada Noda Tinta?</label>
-            <select name="hasInkStain" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="ya">Ya</option>
-              <option value="tidak">Tidak</option>
-            </select>
-          </div>
-
-          {/* Kondisi 6 */}
-          <div>
-            <label className="block font-medium mb-1">Jumlah Pakaian</label>
-            <select name="clothesCount" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="sedikit">Sedikit</option>
-              <option value="banyak">Banyak</option>
-            </select>
-          </div>
-
-          {/* Kondisi 7 */}
-          <div>
-            <label className="block font-medium mb-1">Jenis Pakaian</label>
-            <select name="clothingType" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="baju">Baju</option>
-              <option value="celana">Celana</option>
-              <option value="jas">Jas</option>
-              <option value="sprei">Sprei</option>
-              <option value="lainnya">Lainnya</option>
-            </select>
-          </div>
-
-          {/* Kondisi 8 */}
-          <div>
-            <label className="block font-medium mb-1">Ada Bahan Sensitif?</label>
-            <select name="sensitiveMaterial" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="ya">Ya</option>
-              <option value="tidak">Tidak</option>
-            </select>
-          </div>
-
-          {/* Kondisi 9 */}
-          <div>
-            <label className="block font-medium mb-1">Butuh Disetrika?</label>
-            <select name="needIron" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="ya">Ya</option>
-              <option value="tidak">Tidak</option>
-            </select>
-          </div>
-
-          {/* Kondisi 10 */}
-          <div>
-            <label className="block font-medium mb-1">Butuh Cepat Selesai?</label>
-            <select name="needExpress" onChange={handleChange} required className="w-full p-2 border rounded">
-              <option value="">Pilih</option>
-              <option value="ya">Ya</option>
-              <option value="tidak">Tidak</option>
-            </select>
-          </div>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 shadow-2xl p-6 rounded-2xl bg-gradient-to-br from-white to-gray-100">
+          {/* === Kondisi Form === */}
+          {[
+            { label: "Jenis Kain", name: "fabricType", options: ["katun", "sutra", "wol", "denim", "lainnya"] },
+            { label: "Warna Pakaian", name: "color", options: ["putih", "warna", "gelap"] },
+            { label: "Tingkat Kotor", name: "dirtLevel", options: ["ringan", "sedang", "sangat kotor"] },
+            { label: "Ada Noda Minyak?", name: "hasOilStain", options: ["ya", "tidak"] },
+            { label: "Ada Noda Tinta?", name: "hasInkStain", options: ["ya", "tidak"] },
+            { label: "Jumlah Pakaian", name: "clothesCount", options: ["sedikit", "banyak"] },
+            { label: "Jenis Pakaian", name: "clothingType", options: ["baju", "celana", "jas", "sprei", "lainnya"] },
+            { label: "Ada Bahan Sensitif?", name: "sensitiveMaterial", options: ["ya", "tidak"] },
+            { label: "Butuh Disetrika?", name: "needIron", options: ["ya", "tidak"] },
+            { label: "Butuh Cepat Selesai?", name: "needExpress", options: ["ya", "tidak"] },
+          ].map((field) => (
+            <div key={field.name}>
+              <label className="block font-medium mb-1">{field.label}</label>
+              <select
+                name={field.name}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Pilih</option>
+                {field.options.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
 
           <div className="md:col-span-2 text-center mt-4">
             <button
               type="submit"
-              className="bg-black hover:bg-gray-800 text-white font-semibold px-6 py-2 rounded-lg transition-all"
+              disabled={loading}
+              className={`${
+                loading ? "bg-gray-500" : "bg-black hover:bg-gray-800"
+              } text-white font-semibold px-6 py-2 rounded-lg transition-all`}
             >
-              Dapatkan Rekomendasi
+              {loading ? "Menyimpan..." : "Dapatkan Rekomendasi"}
             </button>
           </div>
         </form>
